@@ -16,6 +16,7 @@
 #include "Texture.h"
 #include "RootSignature.h"
 #include "PipelineState.h"
+#include "Camera.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -47,4 +48,5 @@ private:
 	std::unique_ptr<Texture> _texture;
 	std::unique_ptr<RootSignature> _rootSignature;
 	std::unique_ptr<PipelineState> _pipelineState;
+	std::unique_ptr<Camera> _camera;
 };

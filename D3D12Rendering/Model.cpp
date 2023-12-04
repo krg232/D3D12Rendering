@@ -4,19 +4,21 @@ Model::Model()
 {
 }
 
-void Model::Load()
+void Model::Load(std::string path)
 {
-	_mesh.vertices =
-	{
-		{{-1.f,-1.f,0.0f},{0.0f,1.0f}},
-		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},
-		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},
-		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},
-	};
-	_mesh.indices = { 0,1,2,2,1,3 };
+	FbxImporter _importer;
+	ImportSettings _settings = { StrToWstr(path),_meshes };
+
+	_importer.LoadFbx(_settings);
 }
 
 Mesh Model::GetMesh()
 {
 	return this->_mesh;
 }
+
+std::vector<Mesh>& Model::GetMeshes()
+{
+	return _meshes;
+}
+

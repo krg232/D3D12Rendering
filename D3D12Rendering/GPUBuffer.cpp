@@ -4,14 +4,18 @@ GPUBuffer::GPUBuffer()
 {
 }
 
-void GPUBuffer::CreateVertexBuffer(ID3D12Device* device, Mesh mesh)
+void GPUBuffer::CreateVertexBuffers(ID3D12Device* device, std::vector<Mesh> meshs)
 {
     _vertexHeapProperty.Type = D3D12_HEAP_TYPE_UPLOAD;
     _vertexHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     _vertexHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
+	_vertexBuffers.resize(meshs.size());
+
+    for (int i = 0; i < meshs.size(); i++)
+    {
         _vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        _vertexResourceDesc.Width = mesh.vertices.size() * sizeof(Vertex);
+        _vertexResourceDesc.Width = meshs.at(i).vertices.size() * sizeof(Vertex);
         _vertexResourceDesc.Height = 1;
         _vertexResourceDesc.DepthOrArraySize = 1;
         _vertexResourceDesc.MipLevels = 1;
@@ -24,30 +28,51 @@ void GPUBuffer::CreateVertexBuffer(ID3D12Device* device, Mesh mesh)
             D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(_vertexBuffer.GetAddressOf()));
 
         _result = _vertexBuffer->Map(0, nullptr, (void**)&_vertMap);
-        std::copy(std::begin(mesh.vertices), std::end(mesh.vertices), _vertMap);
+        std::copy(std::begin(meshs.at(i).vertices), std::end(meshs.at(i).vertices), _vertMap);
         _vertexBuffer->Unmap(0, nullptr);
 
         _vertexBufferView.BufferLocation = _vertexBuffer->GetGPUVirtualAddress();
-        _vertexBufferView.SizeInBytes = static_cast<int>(mesh.vertices.size() * sizeof(Vertex));
+        _vertexBufferView.SizeInBytes = static_cast<int>(meshs.at(i).vertices.size() * sizeof(Vertex));
         _vertexBufferView.StrideInBytes = sizeof(Vertex);
 
-        _vertexResourceDesc.Width = mesh.indices.size() * sizeof(std::int32_t);
+        _vertexResourceDesc.Width = meshs.at(i).indices.size() * sizeof(std::int32_t);
 
+		_vertexBuffers.at(i)._vertexBuffer = _vertexBuffer;
+		_vertexBuffers.at(i)._vertexBufferView = _vertexBufferView;
+    }
 }
 
-void GPUBuffer::CreateIndexBuffer(ID3D12Device* device, Mesh mesh)
+void GPUBuffer::CreateIndexBuffers(ID3D12Device* device, std::vector<Mesh> meshs)
 {
-    _result = device->CreateCommittedResource(&_vertexHeapProperty, D3D12_HEAP_FLAG_NONE, &_vertexResourceDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(_indexBuffer.GetAddressOf()));
+	_indexBuffers.resize(meshs.size());
 
-    _result = _indexBuffer->Map(0, nullptr, (void**)&_indexMap);
-    std::copy(std::begin(mesh.indices), std::end(mesh.indices), _indexMap);
-    _indexBuffer->Unmap(0, nullptr);
+    for (int i = 0; i < meshs.size(); i++)
+    {
+        _indexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        _indexResourceDesc.Width = meshs.at(i).indices.size() * sizeof(unsigned short);
+        _indexResourceDesc.Height = 1;
+        _indexResourceDesc.DepthOrArraySize = 1;
+        _indexResourceDesc.MipLevels = 1;
+        _indexResourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        _indexResourceDesc.SampleDesc.Count = 1;
+        _indexResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        _indexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-    _indexBufferView.BufferLocation = _indexBuffer->GetGPUVirtualAddress();
-    _indexBufferView.SizeInBytes = mesh.indices.size() * sizeof(unsigned short);
-    _indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+        _result = device->CreateCommittedResource(&_vertexHeapProperty, D3D12_HEAP_FLAG_NONE, &_indexResourceDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(_indexBuffer.GetAddressOf()));
 
+        _result = _indexBuffer->Map(0, nullptr, (void**)&_indexMap);
+        std::copy(std::begin(meshs.at(i).indices), std::end(meshs.at(i).indices), _indexMap);
+        _indexBuffer->Unmap(0, nullptr);
+
+        _indexBufferView.BufferLocation = _indexBuffer->GetGPUVirtualAddress();
+        _indexBufferView.SizeInBytes = meshs.at(i).indices.size() * sizeof(unsigned short);
+        _indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+
+		_indexBuffers.at(i)._indexBuffer = _indexBuffer;
+		_indexBuffers.at(i)._indexBufferView = _indexBufferView;
+		_indexBuffers.at(i)._indexCount = meshs.at(i).indices.size();
+    }
 }
 
 void GPUBuffer::CreateTextureBuffer(ID3D12Device* device, DirectX::Image *rawImage, DirectX::TexMetadata texMetaData)
@@ -104,34 +129,46 @@ void GPUBuffer::CreateConstantBuffer(ID3D12Device* device)
         nullptr,
         IID_PPV_ARGS(_constBuffer.GetAddressOf()));
 
-    DirectX::XMMATRIX _viewMatrix;
-    DirectX::XMMATRIX _projectionMatrix;
-    {
-        using DirectX::XMLoadFloat3;
-
-        ViewMatrix _viewMat;
-        _viewMat.eyePos = DirectX::XMFLOAT3(0, 0, -5);
-        _viewMat.forcusPos = DirectX::XMFLOAT3(0, 0, 0);
-        _viewMat.upDirection = DirectX::XMFLOAT3(0, 1, 0);
-
-
-        _viewMatrix = DirectX::XMMatrixLookAtLH(
-            XMLoadFloat3(&_viewMat.eyePos),
-            XMLoadFloat3(&_viewMat.forcusPos),
-            XMLoadFloat3(&_viewMat.upDirection));
-        _projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(
-            DirectX::XMConvertToRadians(90),
-            static_cast<float>(1920) / static_cast<float>(1080),
-            1.0f,
-            10.0f);
-    }
-
     _result = _constBuffer->Map(0, nullptr, (void**)&_mapMatrix);
-    *_mapMatrix = _matrix * _viewMatrix * _projectionMatrix;
+    *_mapMatrix = _matrix;
 
     _cbvDesc.BufferLocation = _constBuffer->GetGPUVirtualAddress();
     _cbvDesc.SizeInBytes = _constBuffer->GetDesc().Width;
     device->CreateConstantBufferView(&_cbvDesc, _texDescHeapHandle);
+}
+
+void GPUBuffer::CreateDeapthBuffer(ID3D12Device* device, int width, int height)
+{
+    _deapthResorceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    _deapthResorceDesc.Width = width;
+    _deapthResorceDesc.Height = height;
+    _deapthResorceDesc.DepthOrArraySize = 1;
+    _deapthResorceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    _deapthResorceDesc.SampleDesc.Count = 1;
+    _deapthResorceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+    _deapthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+    _deapthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    _deapthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    _deapthCrearValue.DepthStencil.Depth = 1.0f;
+    _deapthCrearValue.Format = DXGI_FORMAT_D32_FLOAT;
+
+    _result = device->CreateCommittedResource(&_deapthHeapProp, D3D12_HEAP_FLAG_NONE, &_deapthResorceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &_deapthCrearValue, IID_PPV_ARGS(_deapthBuffer.GetAddressOf()));
+
+    _deapthDescriptorHeapDesc.NumDescriptors = 1;
+    _deapthDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    _result = device->CreateDescriptorHeap(&_deapthDescriptorHeapDesc, IID_PPV_ARGS(_deapthDescriptorHeap.GetAddressOf()));
+
+    _stencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    _stencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    _stencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+    device->CreateDepthStencilView(_deapthBuffer.Get(), &_stencilViewDesc, _deapthDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+}
+
+int GPUBuffer::GetVertexBufferSize() const
+{
+	return _vertexBuffers.size();
 }
 
 ID3D12DescriptorHeap* GPUBuffer::GetTexDescHeap() const
@@ -144,12 +181,27 @@ ID3D12DescriptorHeap*const* GPUBuffer::GetTexDescHeapPtr() const
 	return _texDescHeap.GetAddressOf();
 }
 
-const D3D12_VERTEX_BUFFER_VIEW* GPUBuffer::GetVertexBufferView() const
+const D3D12_VERTEX_BUFFER_VIEW* GPUBuffer::GetVertexBufferView(int index) const
 {
-	return &_vertexBufferView;
+	return &(_vertexBuffers.at(index)._vertexBufferView);
 }
 
-const D3D12_INDEX_BUFFER_VIEW* GPUBuffer::GetIndexBufferView() const
+const D3D12_INDEX_BUFFER_VIEW* GPUBuffer::GetIndexBufferView(int index) const
 {
-    return &_indexBufferView;
+	return &(_indexBuffers.at(index)._indexBufferView);
+}
+
+int GPUBuffer::GetIndexCount(int index) const
+{
+	return _indexBuffers.at(index)._indexCount;
+}
+
+void GPUBuffer::SetToMapMatrix(DirectX::XMMATRIX mat)
+{
+	*_mapMatrix = mat;
+}
+
+ID3D12DescriptorHeap* GPUBuffer::GetDeapthDescriptorHeap() const
+{
+	return _deapthDescriptorHeap.Get();
 }
