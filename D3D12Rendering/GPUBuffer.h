@@ -19,18 +19,25 @@ struct IndexBuffer
 	int _indexCount;
 };
 
+struct TextureBuffer
+{
+	Microsoft::WRL::ComPtr<ID3D12Resource> _textureBuffer;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _texDescHeap;
+};
+
 class GPUBuffer
 {
 public:
 	GPUBuffer();
 	void CreateVertexBuffers(ID3D12Device* device, std::vector<Mesh> mesh);
 	void CreateIndexBuffers(ID3D12Device* device, std::vector<Mesh> mesh);
-	void CreateTextureBuffer(ID3D12Device* device, DirectX::Image *rawImage, DirectX::TexMetadata texMetaData);
+	void CreateTextureBuffer(ID3D12Device* device, const std::vector<TextureData>& texDatas);
 	void CreateConstantBuffer(ID3D12Device* device);
 	void CreateDeapthBuffer(ID3D12Device* device, int width, int height);
 	int GetVertexBufferSize() const;
-	ID3D12DescriptorHeap* GetTexDescHeap() const;
-	ID3D12DescriptorHeap* const* GetTexDescHeapPtr() const;
+	int GetTextureBufferSize() const;
+	ID3D12DescriptorHeap* GetTexDescHeap(int index) const;
+	ID3D12DescriptorHeap* const* GetTexDescHeapPtr(int index) const;
 	const D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView(int index) const;
 	const D3D12_INDEX_BUFFER_VIEW* GetIndexBufferView(int index) const;
 	int GetIndexCount(int index) const;
@@ -60,6 +67,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _texDescHeap;
 	D3D12_SHADER_RESOURCE_VIEW_DESC _shaderResourceView = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE _texDescHeapHandle = {};
+	std::vector<TextureBuffer> _textureBuffers;
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC _cbvDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _constBuffer;

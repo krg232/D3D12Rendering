@@ -17,6 +17,8 @@ struct ImportSettings
 {
     std::wstring filePath = L"";
     std::vector<Mesh>& meshes;
+    bool flipU = false; // U座標反転？
+    bool flipV = false; // V座標反転？
 };
 
 class FbxImporter
@@ -25,7 +27,7 @@ public:
 	void LoadFbx(ImportSettings settings);
 
 private:
-    void LoadMesh(Mesh& dst, const aiMesh* src);
+    void LoadMesh(Mesh& dst, const aiMesh* src, bool flipU, bool flipV);
     void LoadTexture(std::wstring filename, Mesh& dst, const aiMaterial* src);
     Assimp::Importer _importer;
 };

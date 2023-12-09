@@ -14,6 +14,9 @@ void FbxImporter::LoadFbx(ImportSettings settings)
     }
     auto path = WstrToStr(settings.filePath);
 
+    auto flipU = settings.flipU;
+    auto flipV = settings.flipV;
+
     int flag = 0;
     flag |= aiProcess_Triangulate
         | aiProcess_PreTransformVertices
@@ -37,7 +40,7 @@ void FbxImporter::LoadFbx(ImportSettings settings)
     for (size_t i = 0; i < meshes.size(); ++i)
     {
         const auto pMesh = scene->mMeshes[i];
-        LoadMesh(meshes[i], pMesh);
+        LoadMesh(meshes[i], pMesh, flipU, flipV);
         const auto pMaterial = scene->mMaterials[i];
         LoadTexture(settings.filePath, meshes[i], pMaterial);
     }
@@ -45,7 +48,7 @@ void FbxImporter::LoadFbx(ImportSettings settings)
     scene = nullptr;
 }
 
-void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src)
+void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool inverseV)
 {
     aiVector3D zeroVec3D(0.0f, 0.0f, 0.0f);
     aiColor4D zeroColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -58,6 +61,16 @@ void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src)
         auto normal = &(src->mNormals[i]);
         auto uv = src->HasTextureCoords(0) ? &(src->mTextureCoords[0][i]) : &zeroVec3D;
         auto tangent = src->HasTangentsAndBitangents() ? &(src->mTangents[i]) : &zeroVec3D;
+
+        // UVの反転
+        if (inverseU)
+        {
+            uv->x = 1 - uv->x;
+        }
+        if (inverseV)
+        {
+            uv->y = 1 - uv->y;
+        }
 
         Vertex vertex = {};
         vertex.pos = DirectX::XMFLOAT3(position->x, position->y, position->z);
@@ -87,8 +100,10 @@ void FbxImporter::LoadTexture(std::wstring filePath, Mesh& dst, const aiMaterial
     {
 		// 相対パスを絶対パスに変換
         auto dir = GetDirectoryPath(filePath);
-        auto file = std::string(path.C_Str());
-        dst.texPath = WstrToStr(dir) + file;
+        std::filesystem::path file = std::string(path.C_Str());
+        // Aliciaモデルの場合はテクスチャ指定がpsdになっているのため同梱tgaに変更する
+        file.replace_extension("tga");
+        dst.texPath = WstrToStr(dir + file.c_str());
     }
     else
     {

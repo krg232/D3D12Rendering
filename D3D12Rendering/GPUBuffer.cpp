@@ -75,45 +75,54 @@ void GPUBuffer::CreateIndexBuffers(ID3D12Device* device, std::vector<Mesh> meshs
     }
 }
 
-void GPUBuffer::CreateTextureBuffer(ID3D12Device* device, DirectX::Image *rawImage, DirectX::TexMetadata texMetaData)
+void GPUBuffer::CreateTextureBuffer(ID3D12Device* device, const std::vector<TextureData>& texDatas)
 {
-    _textureHeapProperty.Type = D3D12_HEAP_TYPE_CUSTOM;
-    _textureHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-    _textureHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-    _textureHeapProperty.CreationNodeMask = 0;
-    _textureHeapProperty.VisibleNodeMask = 0;
+	_textureBuffers.resize(texDatas.size());
 
-    _textureResourceDesc.Format = texMetaData.format;
-    _textureResourceDesc.Width = texMetaData.width;
-    _textureResourceDesc.Height = texMetaData.height;
-    _textureResourceDesc.DepthOrArraySize = texMetaData.arraySize;
-    _textureResourceDesc.SampleDesc.Count = 1;
-    _textureResourceDesc.SampleDesc.Quality = 0;
-    _textureResourceDesc.MipLevels = texMetaData.mipLevels;
-    _textureResourceDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(texMetaData.dimension);
-    _textureResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    _textureResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    for (int i = 0; i < texDatas.size(); i++)
+    {
 
-    _result = device->CreateCommittedResource(&_textureHeapProperty, D3D12_HEAP_FLAG_NONE, &_textureResourceDesc,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(_textureBuffer.GetAddressOf()));
+        _textureHeapProperty.Type = D3D12_HEAP_TYPE_CUSTOM;
+        _textureHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+        _textureHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+        _textureHeapProperty.CreationNodeMask = 0;
+        _textureHeapProperty.VisibleNodeMask = 0;
 
-    _result = _textureBuffer->WriteToSubresource(0, nullptr, rawImage->pixels, rawImage->rowPitch, rawImage->slicePitch);
+        _textureResourceDesc.Format = texDatas.at(i).texMetaData.format;
+        _textureResourceDesc.Width = texDatas.at(i).texMetaData.width;
+        _textureResourceDesc.Height = texDatas.at(i).texMetaData.height;
+        _textureResourceDesc.DepthOrArraySize = texDatas.at(i).texMetaData.arraySize;
+        _textureResourceDesc.SampleDesc.Count = 1;
+        _textureResourceDesc.SampleDesc.Quality = 0;
+        _textureResourceDesc.MipLevels = texDatas.at(i).texMetaData.mipLevels;
+        _textureResourceDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(texDatas.at(i).texMetaData.dimension);
+        _textureResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+        _textureResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-    _textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    _textureHeapDesc.NodeMask = 0;
-    _textureHeapDesc.NumDescriptors = 2;
-    _textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        _result = device->CreateCommittedResource(&_textureHeapProperty, D3D12_HEAP_FLAG_NONE, &_textureResourceDesc,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(_textureBuffer.GetAddressOf()));
 
-    _result = device->CreateDescriptorHeap(&_textureHeapDesc, IID_PPV_ARGS(_texDescHeap.GetAddressOf()));
+        _result = _textureBuffer->WriteToSubresource(0, nullptr, texDatas.at(i).rawImage.pixels, texDatas.at(i).rawImage.rowPitch, texDatas.at(i).rawImage.slicePitch);
 
-    _shaderResourceView.Format = texMetaData.format;
-    _shaderResourceView.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    _shaderResourceView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    _shaderResourceView.Texture2D.MipLevels = 1;
+        _textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        _textureHeapDesc.NodeMask = 0;
+        _textureHeapDesc.NumDescriptors = 2;
+        _textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-    _texDescHeapHandle = _texDescHeap->GetCPUDescriptorHandleForHeapStart();
-    device->CreateShaderResourceView(_textureBuffer.Get(), &_shaderResourceView, _texDescHeapHandle);
-    _texDescHeapHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        _result = device->CreateDescriptorHeap(&_textureHeapDesc, IID_PPV_ARGS(_texDescHeap.GetAddressOf()));
+
+        _shaderResourceView.Format = texDatas.at(i).texMetaData.format;
+        _shaderResourceView.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        _shaderResourceView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        _shaderResourceView.Texture2D.MipLevels = 1;
+
+        _texDescHeapHandle = _texDescHeap->GetCPUDescriptorHandleForHeapStart();
+        device->CreateShaderResourceView(_textureBuffer.Get(), &_shaderResourceView, _texDescHeapHandle);
+        _texDescHeapHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		_textureBuffers.at(i)._textureBuffer = _textureBuffer;
+		_textureBuffers.at(i)._texDescHeap = _texDescHeap;
+    }
 }
 
 void GPUBuffer::CreateConstantBuffer(ID3D12Device* device)
@@ -171,14 +180,19 @@ int GPUBuffer::GetVertexBufferSize() const
 	return _vertexBuffers.size();
 }
 
-ID3D12DescriptorHeap* GPUBuffer::GetTexDescHeap() const
+int GPUBuffer::GetTextureBufferSize() const
 {
-	return _texDescHeap.Get();
+    return _textureBuffers.size();
 }
 
-ID3D12DescriptorHeap*const* GPUBuffer::GetTexDescHeapPtr() const
+ID3D12DescriptorHeap* GPUBuffer::GetTexDescHeap(int index) const
 {
-	return _texDescHeap.GetAddressOf();
+	return _textureBuffers.at(index)._texDescHeap.Get();
+}
+
+ID3D12DescriptorHeap*const* GPUBuffer::GetTexDescHeapPtr(int index) const
+{
+	return _textureBuffers.at(index)._texDescHeap.GetAddressOf();
 }
 
 const D3D12_VERTEX_BUFFER_VIEW* GPUBuffer::GetVertexBufferView(int index) const

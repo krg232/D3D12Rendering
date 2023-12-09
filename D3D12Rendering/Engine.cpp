@@ -42,8 +42,8 @@ void Engine::Init()
 	_gpuBuffer->CreateIndexBuffers(_dev.Get(), _model->GetMeshes());
 
 	_texture->CreateTexSampler();
-	_texture->LoadTexture("Assets//UVCheckerMap01-512.png");
-	_gpuBuffer->CreateTextureBuffer(_dev.Get(), _texture->GetRawImage(), _texture->GetTexMetaData());
+    _texture->LoadTextures(_model->GetMeshes());
+	_gpuBuffer->CreateTextureBuffer(_dev.Get(), _texture->GetTextureDatas());
 	
     _camera->InitCamera(DirectX::XMFLOAT3(0,120,75), DirectX::XMFLOAT3(0, 120, 0), DirectX::XMFLOAT3(0, 1, 0), 90, WindowWidth, WindowHeight);
     _gpuBuffer->CreateConstantBuffer(_dev.Get());
@@ -73,11 +73,15 @@ void Engine::Update()
     _commands->GetCommandList()->OMSetRenderTargets(1, &rtvHundle, true, &dsvHandle);
 
     _commands->GetCommandList()->SetGraphicsRootSignature(_rootSignature->GetRootSignature());
-    _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());
-    auto _heapHandle = _gpuBuffer->GetTexDescHeap()->GetGPUDescriptorHandleForHeapStart();
-    _commands->GetCommandList()->SetGraphicsRootDescriptorTable(0, _heapHandle);
-    _heapHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    _commands->GetCommandList()->SetGraphicsRootDescriptorTable(1, _heapHandle);
+    
+    for (int i = 0; i < _gpuBuffer->GetTextureBufferSize(); i++)
+    {
+        _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr(i));
+        auto _heapHandle = _gpuBuffer->GetTexDescHeap(i)->GetGPUDescriptorHandleForHeapStart();
+        _commands->GetCommandList()->SetGraphicsRootDescriptorTable(0, _heapHandle);
+        _heapHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        _commands->GetCommandList()->SetGraphicsRootDescriptorTable(1, _heapHandle);
+    }
 
     _commands->GetCommandList()->RSSetViewports(1, _device->GetViewPort());
     _commands->GetCommandList()->RSSetScissorRects(1, _device->GetScissorRect());

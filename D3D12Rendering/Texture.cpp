@@ -17,13 +17,27 @@ void Texture::CreateTexSampler()
     _textureSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 }
 
-void Texture::LoadTexture(std::string path)
+void Texture::LoadTextures(std::vector<Mesh>& meshes)
 {
+	_textureDatas.resize(meshes.size());
     _result = CoInitializeEx(0, COINIT_MULTITHREADED);
-    _result = DirectX::LoadFromWICFile(StrToWstr(path).c_str(),
-        DirectX::WIC_FLAGS_NONE, &_texMetaData, _scratchImage);
-    auto img = _scratchImage.GetImage(0, 0, 0);
-	_rawImage = const_cast<DirectX::Image*>(img);
+
+    for (int i = 0; i < meshes.size(); i++)
+    {
+        std::filesystem::path ext = meshes.at(i).texPath;
+
+        if (ext.extension() != ".tga")
+        {
+            _result = DirectX::LoadFromWICFile(StrToWstr(meshes.at(i).texPath).c_str(), DirectX::WIC_FLAGS_NONE, &(_textureDatas.at(i).texMetaData), _textureDatas.at(i).scratchImage);
+        }
+        else
+        {
+            _result = DirectX::LoadFromTGAFile(StrToWstr(meshes.at(i).texPath).c_str(),&(_textureDatas.at(i).texMetaData),_textureDatas.at(i).scratchImage);
+        }
+        
+        auto img = _textureDatas.at(i).scratchImage.GetImage(0, 0, 0);
+        _textureDatas.at(i).rawImage = *const_cast<DirectX::Image*>(img);
+    }
 }
 
 DirectX::TexMetadata Texture::GetTexMetaData() const
@@ -39,4 +53,9 @@ DirectX::Image* Texture::GetRawImage() const
 D3D12_STATIC_SAMPLER_DESC Texture::GetTextureSamplerDesc() const
 {
 	return _textureSamplerDesc;
+}
+
+const std::vector<TextureData>& Texture::GetTextureDatas() const
+{
+    return _textureDatas;
 }
