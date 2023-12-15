@@ -6,11 +6,13 @@ PipelineState::PipelineState()
 
 void PipelineState::SetInputLayout()
 {
-    _inputLayout[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-    _inputLayout[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+    _inputLayout[0] = {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0};
+    _inputLayout[1] = {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0};
+    _inputLayout[2] = {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0};
+    _inputLayout[3] = {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0};
 }
 
-void PipelineState::CreatePipelineState(ID3D12Device* device, ID3D12RootSignature* rootSignature, ID3DBlob* vsBlob, ID3DBlob* psBlob)
+void PipelineState::CreatePipelineState(ID3D12Device *device, ID3D12RootSignature *rootSignature, ID3DBlob *vsBlob, ID3DBlob *psBlob)
 {
     _renderTargetBlendDesc.BlendEnable = true;
     _renderTargetBlendDesc.LogicOpEnable = false;
@@ -58,10 +60,9 @@ void PipelineState::CreatePipelineState(ID3D12Device* device, ID3D12RootSignatur
     _graphicsPipelineStateDesc.NodeMask = 0;
 
     _result = device->CreateGraphicsPipelineState(&_graphicsPipelineStateDesc, IID_PPV_ARGS(_pipelineState.GetAddressOf()));
-
 }
 
-ID3D12PipelineState* PipelineState::GetPipelineState() const
+ID3D12PipelineState *PipelineState::GetPipelineState() const
 {
-	return _pipelineState.Get();
+    return _pipelineState.Get();
 }

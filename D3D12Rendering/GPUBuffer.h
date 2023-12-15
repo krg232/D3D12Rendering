@@ -22,27 +22,27 @@ struct IndexBuffer
 struct TextureBuffer
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> _textureBuffer;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _texDescHeap;
+	D3D12_SHADER_RESOURCE_VIEW_DESC _srv;
 };
 
 class GPUBuffer
 {
 public:
 	GPUBuffer();
-	void CreateVertexBuffers(ID3D12Device* device, std::vector<Mesh> mesh);
-	void CreateIndexBuffers(ID3D12Device* device, std::vector<Mesh> mesh);
-	void CreateTextureBuffer(ID3D12Device* device, const std::vector<TextureData>& texDatas);
-	void CreateConstantBuffer(ID3D12Device* device);
-	void CreateDeapthBuffer(ID3D12Device* device, int width, int height);
+	void CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> mesh);
+	void CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> mesh);
+	void CreateTextureBuffer(ID3D12Device *device, const std::vector<TextureData> &texDatas);
+	void CreateConstantBuffer(ID3D12Device *device);
+	void CreateDeapthBuffer(ID3D12Device *device, int width, int height);
 	int GetVertexBufferSize() const;
 	int GetTextureBufferSize() const;
-	ID3D12DescriptorHeap* GetTexDescHeap(int index) const;
-	ID3D12DescriptorHeap* const* GetTexDescHeapPtr(int index) const;
-	const D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView(int index) const;
-	const D3D12_INDEX_BUFFER_VIEW* GetIndexBufferView(int index) const;
+	ID3D12DescriptorHeap *GetTexDescHeap() const;
+	ID3D12DescriptorHeap *const *GetTexDescHeapPtr() const;
+	const D3D12_VERTEX_BUFFER_VIEW *GetVertexBufferView(int index) const;
+	const D3D12_INDEX_BUFFER_VIEW *GetIndexBufferView(int index) const;
 	int GetIndexCount(int index) const;
 	void SetToMapMatrix(DirectX::XMMATRIX mat);
-	ID3D12DescriptorHeap* GetDeapthDescriptorHeap() const;
+	ID3D12DescriptorHeap *GetDeapthDescriptorHeap() const;
 
 private:
 	HRESULT _result;
@@ -52,12 +52,12 @@ private:
 	D3D12_RESOURCE_DESC _vertexResourceDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _vertexBuffer;
 	std::vector<VertexBuffer> _vertexBuffers;
-	Vertex* _vertMap;
+	Vertex *_vertMap;
 
 	D3D12_RESOURCE_DESC _indexResourceDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _indexBuffer;
 	std::vector<IndexBuffer> _indexBuffers;
-	USHORT* _indexMap;
+	USHORT *_indexMap;
 	D3D12_INDEX_BUFFER_VIEW _indexBufferView = {};
 
 	D3D12_HEAP_PROPERTIES _textureHeapProperty = {};
@@ -81,5 +81,4 @@ private:
 	D3D12_DEPTH_STENCIL_VIEW_DESC _stencilViewDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _deapthBuffer;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _deapthDescriptorHeap;
-
 };
