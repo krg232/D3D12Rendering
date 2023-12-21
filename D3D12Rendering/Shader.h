@@ -10,7 +10,7 @@ class Shader
 {
 public:
 	Shader();
-	void Compile();
+	void CompileShaders();
 	ID3D10Blob *GetVertexShaderBlob() const;
 	ID3D10Blob *GetPixelShaderBlob() const;
 

@@ -31,37 +31,36 @@ void Engine::Init()
     EnableDx12DebugLayer();
 #endif // DEBUG
     _device->InitDevice();
-    _dev = _device->GetDevice();
-    _commands->CreateCommands(_dev.Get());
-    _swapchain->CreateSwapChain(_dev.Get(), _device->GetDxgiFactory(), _commands->GetCommandQueue(), _hwnd, WindowWidth, WindowHeight);
-    _fence->CreateFence(_dev.Get());
+    _commands->CreateCommands(_device->GetDevice());
+    _swapchain->CreateSwapChain(_device->GetDevice(), _device->GetDxgiFactory(), _commands->GetCommandQueue(), _hwnd, WindowWidth, WindowHeight);
+    _fence->CreateFence(_device->GetDevice());
 
-    _shader->Compile();
+    _shader->CompileShaders();
 
-    _model->Load("Assets/Alicia_FBX/Alicia_solid_Unity.FBX");
-    _gpuBuffer->CreateVertexBuffers(_dev.Get(), _model->GetMeshes());
-    _gpuBuffer->CreateIndexBuffers(_dev.Get(), _model->GetMeshes());
+    _model->LoadModel("Assets/Alicia_FBX/Alicia_solid_Unity.FBX");
+    _gpuBuffer->CreateVertexBuffers(_device->GetDevice(), _model->GetMeshes());
+    _gpuBuffer->CreateIndexBuffers(_device->GetDevice(), _model->GetMeshes());
 
     _texture->InitTexSampler();
     _texture->LoadTextures(_model->GetMeshes());
-    _gpuBuffer->CreateTextureBuffer(_dev.Get(), _texture->GetTextureDatas());
+    _gpuBuffer->CreateTextureBuffer(_device->GetDevice(), _texture->GetTextureDatas());
 
     _camera->InitCamera(DirectX::XMFLOAT3(0, 120, 75), DirectX::XMFLOAT3(0, 120, 0), DirectX::XMFLOAT3(0, 1, 0), 90, WindowWidth, WindowHeight);
-    _gpuBuffer->CreateConstantBuffer(_dev.Get());
-    _gpuBuffer->SetToMapMatrix(_camera->GetCameraMatrix());
+    _gpuBuffer->CreateConstantBuffer(_device->GetDevice());
+    _gpuBuffer->UpdateConstBufferMatrix(_camera->GetCameraMatrix());
 
-    _gpuBuffer->CreateDeapthBuffer(_dev.Get(), WindowWidth, WindowHeight);
+    _gpuBuffer->CreateDeapthBuffer(_device->GetDevice(), WindowWidth, WindowHeight);
 
     _pipelineState->SetInputLayout();
-    _rootSignature->CreateRootSignature(_dev.Get(), _texture->GetTextureSamplerDesc());
-    _pipelineState->CreatePipelineState(_dev.Get(), _rootSignature->GetRootSignature(), _shader->GetVertexShaderBlob(), _shader->GetPixelShaderBlob());
+    _rootSignature->CreateRootSignature(_device->GetDevice(), _texture->GetTextureSamplerDesc());
+    _pipelineState->CreatePipelineState(_device->GetDevice(), _rootSignature->GetRootSignature(), _shader->GetVertexShaderBlob(), _shader->GetPixelShaderBlob());
 
     _device->InitViewPort(WindowWidth, WindowHeight);
 }
 
 void Engine::Update()
 {
-    _swapchain->UpdateBuckbufferIndex();
+    _swapchain->UpdateBackbufferIndex();
 
     // バリアの初期化と遷移
     _swapchain->InitBarrierDesc();
@@ -71,9 +70,9 @@ void Engine::Update()
 
     // RTVの設定
     auto rtvHundle = _swapchain->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
-    rtvHundle.ptr += _swapchain->GetBackbufferIndex() * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    rtvHundle.ptr += _swapchain->GetBackbufferIndex() * _device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     // デプスステンシルの設定
-    auto dsvHandle = _gpuBuffer->GetDeapthDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    auto dsvHandle = _gpuBuffer->GetDepthDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     _commands->GetCommandList()->OMSetRenderTargets(1, &rtvHundle, true, &dsvHandle);
 
     // ルートシグネチャ設定
@@ -99,13 +98,13 @@ void Engine::Update()
     auto _heapHandle = _gpuBuffer->GetTexDescHeap()->GetGPUDescriptorHandleForHeapStart();
     // CBV指定用ポインタの設定
     D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle;
-    cbvHandle.ptr = _heapHandle.ptr + (_dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _gpuBuffer->GetVertexBufferSize());
+    cbvHandle.ptr = _heapHandle.ptr + (_device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _gpuBuffer->GetVertexBufferSize());
 
     for (int i = 0; i < _gpuBuffer->GetVertexBufferSize(); i++)
     {
         // SRV設定とオフセット調整
         _commands->GetCommandList()->SetGraphicsRootDescriptorTable(0, _heapHandle);
-        _heapHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        _heapHandle.ptr += _device->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         // CBV設定
         _commands->GetCommandList()->SetGraphicsRootDescriptorTable(1, cbvHandle);
 

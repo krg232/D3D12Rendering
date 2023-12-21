@@ -11,7 +11,7 @@ public:
 	SwapChain();
 	void CreateSwapChain(ID3D12Device *device, IDXGIFactory6 *dxgiFactory, ID3D12CommandQueue *commandQueue, HWND hwnd, int width, int height);
 	void InitBarrierDesc();
-	void UpdateBuckbufferIndex();
+	void UpdateBackbufferIndex();
 	void SetBarrierState(); // バリアをPresentにする
 	D3D12_RESOURCE_BARRIER *GetBarrierDesc();
 	ID3D12DescriptorHeap *GetRtvHeap() const;

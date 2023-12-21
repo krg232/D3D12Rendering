@@ -34,6 +34,6 @@ struct TextureData
 struct ViewMatrix
 {
 	DirectX::XMFLOAT3 eyePos;
-	DirectX::XMFLOAT3 forcusPos;
+	DirectX::XMFLOAT3 focusPos;
 	DirectX::XMFLOAT3 upDirection;
 };

@@ -10,7 +10,7 @@ class Model
 {
 public:
 	Model();
-	void Load(std::string path);
+	void LoadModel(std::string path);
 	std::vector<Mesh>& GetMeshes();
 
 private:

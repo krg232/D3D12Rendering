@@ -6,7 +6,7 @@ Shader::Shader()
     _psFilename = "Shader//BasicPixelShader.hlsl";
 }
 
-void Shader::Compile()
+void Shader::CompileShaders()
 {
     CompileShader(StrToWstr(_vsFilename), "BasicVS", "vs_5_0", _vertexShaderBlob.GetAddressOf());
     CompileShader(StrToWstr(_psFilename), "BasicPS", "ps_5_0", _pixelShaderBlob.GetAddressOf());

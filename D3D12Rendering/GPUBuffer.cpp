@@ -4,19 +4,19 @@ GPUBuffer::GPUBuffer()
 {
 }
 
-void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> meshs)
+void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> meshes)
 {
     _vertexHeapProperty.Type = D3D12_HEAP_TYPE_UPLOAD;
     _vertexHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     _vertexHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-    _vertexBuffers.resize(meshs.size());
+    _vertexBuffers.resize(meshes.size());
 
-    for (int i = 0; i < meshs.size(); i++)
+    for (int i = 0; i < meshes.size(); i++)
     {
         // 頂点バッファの作成
         _vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        _vertexResourceDesc.Width = meshs.at(i).vertices.size() * sizeof(Vertex);
+        _vertexResourceDesc.Width = meshes.at(i).vertices.size() * sizeof(Vertex);
         _vertexResourceDesc.Height = 1;
         _vertexResourceDesc.DepthOrArraySize = 1;
         _vertexResourceDesc.MipLevels = 1;
@@ -29,33 +29,33 @@ void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> mesh
 
         // GPU側に頂点データをマップ
         _result = _vertexBuffer->Map(0, nullptr, (void **)&_vertMap);
-        std::copy(std::begin(meshs.at(i).vertices), std::end(meshs.at(i).vertices), _vertMap);
+        std::copy(std::begin(meshes.at(i).vertices), std::end(meshes.at(i).vertices), _vertMap);
         _vertexBuffer->Unmap(0, nullptr);
 
         _vertexBufferView.BufferLocation = _vertexBuffer->GetGPUVirtualAddress();
-        _vertexBufferView.SizeInBytes = static_cast<int>(meshs.at(i).vertices.size() * sizeof(Vertex));
+        _vertexBufferView.SizeInBytes = static_cast<int>(meshes.at(i).vertices.size() * sizeof(Vertex));
         _vertexBufferView.StrideInBytes = sizeof(Vertex);
 
-        _vertexResourceDesc.Width = meshs.at(i).indices.size() * sizeof(std::int32_t);
+        _vertexResourceDesc.Width = meshes.at(i).indices.size() * sizeof(std::int32_t);
 
         _vertexBuffers.at(i)._vertexBuffer = _vertexBuffer;
         _vertexBuffers.at(i)._vertexBufferView = _vertexBufferView;
     }
 }
 
-void GPUBuffer::CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> meshs)
+void GPUBuffer::CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> meshes)
 {
     _vertexHeapProperty.Type = D3D12_HEAP_TYPE_UPLOAD;
     _vertexHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     _vertexHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-    _indexBuffers.resize(meshs.size());
+    _indexBuffers.resize(meshes.size());
 
-    for (int i = 0; i < meshs.size(); i++)
+    for (int i = 0; i < meshes.size(); i++)
     {
         // インデックスバッファの作成
         _indexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-        _indexResourceDesc.Width = meshs.at(i).indices.size() * sizeof(unsigned short);
+        _indexResourceDesc.Width = meshes.at(i).indices.size() * sizeof(unsigned short);
         _indexResourceDesc.Height = 1;
         _indexResourceDesc.DepthOrArraySize = 1;
         _indexResourceDesc.MipLevels = 1;
@@ -68,16 +68,16 @@ void GPUBuffer::CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> meshs
 
         // GPU側にインデックスデータをマップ
         _result = _indexBuffer->Map(0, nullptr, (void **)&_indexMap);
-        std::copy(std::begin(meshs.at(i).indices), std::end(meshs.at(i).indices), _indexMap);
+        std::copy(std::begin(meshes.at(i).indices), std::end(meshes.at(i).indices), _indexMap);
         _indexBuffer->Unmap(0, nullptr);
 
         _indexBufferView.BufferLocation = _indexBuffer->GetGPUVirtualAddress();
-        _indexBufferView.SizeInBytes = meshs.at(i).indices.size() * sizeof(unsigned short);
+        _indexBufferView.SizeInBytes = meshes.at(i).indices.size() * sizeof(unsigned short);
         _indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
         _indexBuffers.at(i)._indexBuffer = _indexBuffer;
         _indexBuffers.at(i)._indexBufferView = _indexBufferView;
-        _indexBuffers.at(i)._indexCount = meshs.at(i).indices.size();
+        _indexBuffers.at(i)._indexCount = meshes.at(i).indices.size();
     }
 }
 
@@ -160,34 +160,34 @@ void GPUBuffer::CreateConstantBuffer(ID3D12Device *device)
 
 void GPUBuffer::CreateDeapthBuffer(ID3D12Device *device, int width, int height)
 {
-    _deapthResorceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    _deapthResorceDesc.Width = width;
-    _deapthResorceDesc.Height = height;
-    _deapthResorceDesc.DepthOrArraySize = 1;
-    _deapthResorceDesc.Format = DXGI_FORMAT_D32_FLOAT;
-    _deapthResorceDesc.SampleDesc.Count = 1;
-    _deapthResorceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    _depthResorceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    _depthResorceDesc.Width = width;
+    _depthResorceDesc.Height = height;
+    _depthResorceDesc.DepthOrArraySize = 1;
+    _depthResorceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    _depthResorceDesc.SampleDesc.Count = 1;
+    _depthResorceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-    _deapthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
-    _deapthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    _deapthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    _depthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+    _depthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    _depthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
     // 深度クリア値の設定
-    _deapthCrearValue.DepthStencil.Depth = 1.0f;
-    _deapthCrearValue.Format = DXGI_FORMAT_D32_FLOAT;
+    _depthCrearValue.DepthStencil.Depth = 1.0f;
+    _depthCrearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
     // 深度バッファの作成
-    _result = device->CreateCommittedResource(&_deapthHeapProp, D3D12_HEAP_FLAG_NONE, &_deapthResorceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &_deapthCrearValue, IID_PPV_ARGS(_deapthBuffer.GetAddressOf()));
+    _result = device->CreateCommittedResource(&_depthHeapProp, D3D12_HEAP_FLAG_NONE, &_depthResorceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &_depthCrearValue, IID_PPV_ARGS(_depthBuffer.GetAddressOf()));
 
-    _deapthDescriptorHeapDesc.NumDescriptors = 1;
-    _deapthDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-    _result = device->CreateDescriptorHeap(&_deapthDescriptorHeapDesc, IID_PPV_ARGS(_deapthDescriptorHeap.GetAddressOf()));
+    _depthDescriptorHeapDesc.NumDescriptors = 1;
+    _depthDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    _result = device->CreateDescriptorHeap(&_depthDescriptorHeapDesc, IID_PPV_ARGS(_depthDescriptorHeap.GetAddressOf()));
 
     // デプスステンシルビューの作成
     _stencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
     _stencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
     _stencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
-    device->CreateDepthStencilView(_deapthBuffer.Get(), &_stencilViewDesc, _deapthDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+    device->CreateDepthStencilView(_depthBuffer.Get(), &_stencilViewDesc, _depthDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 int GPUBuffer::GetVertexBufferSize() const
@@ -225,12 +225,12 @@ int GPUBuffer::GetIndexCount(int index) const
     return _indexBuffers.at(index)._indexCount;
 }
 
-void GPUBuffer::SetToMapMatrix(DirectX::XMMATRIX mat)
+void GPUBuffer::UpdateConstBufferMatrix(DirectX::XMMATRIX mat)
 {
     *_mapMatrix = mat;
 }
 
-ID3D12DescriptorHeap *GPUBuffer::GetDeapthDescriptorHeap() const
+ID3D12DescriptorHeap *GPUBuffer::GetDepthDescriptorHeap() const
 {
-    return _deapthDescriptorHeap.Get();
+    return _depthDescriptorHeap.Get();
 }

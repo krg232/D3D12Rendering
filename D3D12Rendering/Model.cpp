@@ -4,7 +4,7 @@ Model::Model()
 {
 }
 
-void Model::Load(std::string path)
+void Model::LoadModel(std::string path)
 {
 	FbxImporter _importer;
 	// テクスチャのV座標だけ反転させる

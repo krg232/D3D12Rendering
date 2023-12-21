@@ -44,8 +44,8 @@ public:
 	const D3D12_VERTEX_BUFFER_VIEW *GetVertexBufferView(int index) const;
 	const D3D12_INDEX_BUFFER_VIEW *GetIndexBufferView(int index) const;
 	int GetIndexCount(int index) const;
-	void SetToMapMatrix(DirectX::XMMATRIX mat);
-	ID3D12DescriptorHeap *GetDeapthDescriptorHeap() const;
+	void UpdateConstBufferMatrix(DirectX::XMMATRIX mat);
+	ID3D12DescriptorHeap *GetDepthDescriptorHeap() const;
 
 private:
 	HRESULT _result;
@@ -82,11 +82,11 @@ private:
 	DirectX::XMMATRIX _matrix;
 
 	// 深度バッファ関連
-	D3D12_RESOURCE_DESC _deapthResorceDesc = {};
-	D3D12_HEAP_PROPERTIES _deapthHeapProp = {};
-	D3D12_CLEAR_VALUE _deapthCrearValue = {};
-	D3D12_DESCRIPTOR_HEAP_DESC _deapthDescriptorHeapDesc = {};
+	D3D12_RESOURCE_DESC _depthResorceDesc = {};
+	D3D12_HEAP_PROPERTIES _depthHeapProp = {};
+	D3D12_CLEAR_VALUE _depthCrearValue = {};
+	D3D12_DESCRIPTOR_HEAP_DESC _depthDescriptorHeapDesc = {};
 	D3D12_DEPTH_STENCIL_VIEW_DESC _stencilViewDesc = {};
-	Microsoft::WRL::ComPtr<ID3D12Resource> _deapthBuffer;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _deapthDescriptorHeap;
+	Microsoft::WRL::ComPtr<ID3D12Resource> _depthBuffer;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> _depthDescriptorHeap;
 };

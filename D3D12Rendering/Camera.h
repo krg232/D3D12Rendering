@@ -7,7 +7,7 @@ class Camera
 {
 public:
 	Camera();
-	void InitCamera(DirectX::XMFLOAT3 eyePos, DirectX::XMFLOAT3 furcusPos, DirectX::XMFLOAT3 upDirection, int fov, int windowWidth, int windowHeight);
+	void InitCamera(DirectX::XMFLOAT3 eyePos, DirectX::XMFLOAT3 focusPos, DirectX::XMFLOAT3 upDirection, int fov, int windowWidth, int windowHeight);
 	DirectX::XMMATRIX GetCameraMatrix() const;
 
 private:

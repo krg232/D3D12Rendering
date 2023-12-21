@@ -11,7 +11,7 @@ void Camera::InitCamera(DirectX::XMFLOAT3 eyePos, DirectX::XMFLOAT3 furcusPos, D
 	_windowWidth = windowWidth;
 	_windowHeight = windowHeight;
 	_viewMat.eyePos = eyePos;
-	_viewMat.forcusPos = furcusPos;
+	_viewMat.focusPos = furcusPos;
 	_viewMat.upDirection = upDirection;
 	CalcCameraMatrix();
 }
@@ -26,7 +26,7 @@ void Camera::CalcCameraMatrix()
 	// ビュー行列の計算
 	_lookAt = DirectX::XMMatrixLookAtLH(
 		DirectX::XMLoadFloat3(&_viewMat.eyePos),
-		DirectX::XMLoadFloat3(&_viewMat.forcusPos),
+		DirectX::XMLoadFloat3(&_viewMat.focusPos),
 		DirectX::XMLoadFloat3(&_viewMat.upDirection));
 	// プロジェクション行列の計算
 	_projMat = DirectX::XMMatrixPerspectiveFovLH(

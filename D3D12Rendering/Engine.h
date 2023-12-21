@@ -37,7 +37,6 @@ private:
 	HWND _hwnd;
 	HRESULT _result;
 
-	Microsoft::WRL::ComPtr<ID3D12Device> _dev;
 	std::unique_ptr<Device> _device;
 	std::unique_ptr<Commands> _commands;
 	std::unique_ptr<SwapChain> _swapchain;

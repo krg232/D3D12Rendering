@@ -49,7 +49,7 @@ void SwapChain::InitBarrierDesc()
     _barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 }
 
-void SwapChain::UpdateBuckbufferIndex()
+void SwapChain::UpdateBackbufferIndex()
 {
     backbufferIndex = _swapchain->GetCurrentBackBufferIndex();
 }
