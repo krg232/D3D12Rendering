@@ -12,7 +12,7 @@
 #include "Fence.h"
 #include "Shader.h"
 #include "Model.h"
-#include"GPUBuffer.h"
+#include "GPUBuffer.h"
 #include "Texture.h"
 #include "RootSignature.h"
 #include "PipelineState.h"

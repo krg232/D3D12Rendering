@@ -11,11 +11,11 @@ class Device
 public:
 	Device();
 	void InitDevice();
-	void InitViewPort(int width, int height);
-	ID3D12Device* GetDevice() const;
-	IDXGIFactory6* GetDxgiFactory() const;
-	const D3D12_VIEWPORT* GetViewPort() const;
-	const D3D12_RECT* GetScissorRect() const;
+	void InitViewPort(int width, int height); // ビューポイントとスクリーン領域の設定
+	ID3D12Device *GetDevice() const;
+	IDXGIFactory6 *GetDxgiFactory() const;
+	const D3D12_VIEWPORT *GetViewPort() const;
+	const D3D12_RECT *GetScissorRect() const;
 
 private:
 	HRESULT _result;
@@ -27,5 +27,4 @@ private:
 
 	D3D12_VIEWPORT _viewport = {};
 	D3D12_RECT _scissorRect = {};
-
 };

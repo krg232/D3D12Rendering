@@ -10,8 +10,8 @@ public:
 	void CreateCommands(ID3D12Device *device);
 	ID3D12GraphicsCommandList *GetCommandList() const;
 	ID3D12CommandQueue *GetCommandQueue() const;
-	void ExecuteCommandList();
-	void ResetCommandList();
+	void ExecuteCommandList(); // コマンドリストを実行
+	void ResetCommandList();   // コマンドリストをリセット
 
 private:
 	HRESULT _result;

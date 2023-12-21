@@ -5,6 +5,7 @@
 #include <DirectXMath.h>
 #include <DirectXTex.h>
 
+// 頂点情報の構造体
 struct Vertex
 {
 	DirectX::XMFLOAT3 pos;
@@ -13,6 +14,7 @@ struct Vertex
 	DirectX::XMFLOAT3 tangent;
 };
 
+// メッシュ情報の構造体
 struct Mesh
 {
 	std::vector<Vertex> vertices;
@@ -20,6 +22,7 @@ struct Mesh
 	std::string texPath;
 };
 
+// テクスチャ情報の構造体
 struct TextureData
 {
 	DirectX::Image rawImage;
@@ -27,6 +30,7 @@ struct TextureData
 	DirectX::ScratchImage scratchImage;
 };
 
+// ビュー行列の構造体
 struct ViewMatrix
 {
 	DirectX::XMFLOAT3 eyePos;

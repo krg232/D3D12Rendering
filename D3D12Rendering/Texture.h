@@ -14,22 +14,19 @@ class Texture
 {
 public:
 	Texture();
-	void CreateTexSampler();
-	void LoadTextures(std::vector<Mesh>& meshes);
-	DirectX::TexMetadata GetTexMetaData() const;
-	DirectX::Image* GetRawImage() const;
+	void InitTexSampler();
+	void LoadTextures(std::vector<Mesh> &meshes);
 	D3D12_STATIC_SAMPLER_DESC GetTextureSamplerDesc() const;
-	const std::vector<TextureData>& GetTextureDatas() const;
+	const std::vector<TextureData> &GetTextureDatas() const;
 
 private:
 	HRESULT _result;
 
 	D3D12_STATIC_SAMPLER_DESC _textureSamplerDesc = {};
 
-	DirectX::Image* _rawImage;
+	DirectX::Image *_rawImage;
 	DirectX::TexMetadata _texMetaData = {};
 	DirectX::ScratchImage _scratchImage = {};
 
 	std::vector<TextureData> _textureDatas;
-
 };

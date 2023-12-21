@@ -14,6 +14,7 @@ void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> mesh
 
     for (int i = 0; i < meshs.size(); i++)
     {
+        // 頂点バッファの作成
         _vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         _vertexResourceDesc.Width = meshs.at(i).vertices.size() * sizeof(Vertex);
         _vertexResourceDesc.Height = 1;
@@ -23,10 +24,10 @@ void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> mesh
         _vertexResourceDesc.SampleDesc.Count = 1;
         _vertexResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
         _vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
         _result = device->CreateCommittedResource(&_vertexHeapProperty, D3D12_HEAP_FLAG_NONE, &_vertexResourceDesc,
                                                   D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(_vertexBuffer.GetAddressOf()));
 
+        // GPU側に頂点データをマップ
         _result = _vertexBuffer->Map(0, nullptr, (void **)&_vertMap);
         std::copy(std::begin(meshs.at(i).vertices), std::end(meshs.at(i).vertices), _vertMap);
         _vertexBuffer->Unmap(0, nullptr);
@@ -44,10 +45,15 @@ void GPUBuffer::CreateVertexBuffers(ID3D12Device *device, std::vector<Mesh> mesh
 
 void GPUBuffer::CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> meshs)
 {
+    _vertexHeapProperty.Type = D3D12_HEAP_TYPE_UPLOAD;
+    _vertexHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    _vertexHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
     _indexBuffers.resize(meshs.size());
 
     for (int i = 0; i < meshs.size(); i++)
     {
+        // インデックスバッファの作成
         _indexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
         _indexResourceDesc.Width = meshs.at(i).indices.size() * sizeof(unsigned short);
         _indexResourceDesc.Height = 1;
@@ -57,10 +63,10 @@ void GPUBuffer::CreateIndexBuffers(ID3D12Device *device, std::vector<Mesh> meshs
         _indexResourceDesc.SampleDesc.Count = 1;
         _indexResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
         _indexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
         _result = device->CreateCommittedResource(&_vertexHeapProperty, D3D12_HEAP_FLAG_NONE, &_indexResourceDesc,
                                                   D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(_indexBuffer.GetAddressOf()));
 
+        // GPU側にインデックスデータをマップ
         _result = _indexBuffer->Map(0, nullptr, (void **)&_indexMap);
         std::copy(std::begin(meshs.at(i).indices), std::end(meshs.at(i).indices), _indexMap);
         _indexBuffer->Unmap(0, nullptr);
@@ -79,24 +85,25 @@ void GPUBuffer::CreateTextureBuffer(ID3D12Device *device, const std::vector<Text
 {
     _textureBuffers.resize(texDatas.size());
 
+    // ディスクリプタヒープの作成
     _textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     _textureHeapDesc.NodeMask = 0;
     _textureHeapDesc.NumDescriptors = texDatas.size();
     _textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
     _result = device->CreateDescriptorHeap(&_textureHeapDesc, IID_PPV_ARGS(_texDescHeap.GetAddressOf()));
 
+    // ヒープの先頭ハンドル
     _texDescHeapHandle = _texDescHeap->GetCPUDescriptorHandleForHeapStart();
+
+    _textureHeapProperty.Type = D3D12_HEAP_TYPE_CUSTOM;
+    _textureHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+    _textureHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+    _textureHeapProperty.CreationNodeMask = 0;
+    _textureHeapProperty.VisibleNodeMask = 0;
 
     for (int i = 0; i < texDatas.size(); i++)
     {
-
-        _textureHeapProperty.Type = D3D12_HEAP_TYPE_CUSTOM;
-        _textureHeapProperty.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-        _textureHeapProperty.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-        _textureHeapProperty.CreationNodeMask = 0;
-        _textureHeapProperty.VisibleNodeMask = 0;
-
+        // テクスチャバッファの作成
         _textureResourceDesc.Format = texDatas.at(i).texMetaData.format;
         _textureResourceDesc.Width = texDatas.at(i).texMetaData.width;
         _textureResourceDesc.Height = texDatas.at(i).texMetaData.height;
@@ -107,7 +114,6 @@ void GPUBuffer::CreateTextureBuffer(ID3D12Device *device, const std::vector<Text
         _textureResourceDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(texDatas.at(i).texMetaData.dimension);
         _textureResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
         _textureResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
         _result = device->CreateCommittedResource(&_textureHeapProperty, D3D12_HEAP_FLAG_NONE, &_textureResourceDesc,
                                                   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(_textureBuffer.GetAddressOf()));
 
@@ -118,6 +124,7 @@ void GPUBuffer::CreateTextureBuffer(ID3D12Device *device, const std::vector<Text
         _shaderResourceView.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         _shaderResourceView.Texture2D.MipLevels = 1;
 
+        // SRVをヒープに順番に登録
         device->CreateShaderResourceView(_textureBuffer.Get(), &_shaderResourceView, _texDescHeapHandle);
         _texDescHeapHandle.ptr += device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -130,7 +137,9 @@ void GPUBuffer::CreateConstantBuffer(ID3D12Device *device)
 {
     _matrix = DirectX::XMMatrixIdentity();
     auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    auto resoueceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(_matrix) + 0xff) & ~0xff);
+    auto resoueceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(_matrix) + 0xff) & ~0xff); // 必要バイト数を256アライメントする
+
+    // 定数バッファの作成
     _result = device->CreateCommittedResource(
         &heapProp,
         D3D12_HEAP_FLAG_NONE,
@@ -139,9 +148,11 @@ void GPUBuffer::CreateConstantBuffer(ID3D12Device *device)
         nullptr,
         IID_PPV_ARGS(_constBuffer.GetAddressOf()));
 
+    // GPU側にマップ
     _result = _constBuffer->Map(0, nullptr, (void **)&_mapMatrix);
     *_mapMatrix = _matrix;
 
+    // ビューの作成と登録
     _cbvDesc.BufferLocation = _constBuffer->GetGPUVirtualAddress();
     _cbvDesc.SizeInBytes = _constBuffer->GetDesc().Width;
     device->CreateConstantBufferView(&_cbvDesc, _texDescHeapHandle);
@@ -161,15 +172,18 @@ void GPUBuffer::CreateDeapthBuffer(ID3D12Device *device, int width, int height)
     _deapthHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     _deapthHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
+    // 深度クリア値の設定
     _deapthCrearValue.DepthStencil.Depth = 1.0f;
     _deapthCrearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
+    // 深度バッファの作成
     _result = device->CreateCommittedResource(&_deapthHeapProp, D3D12_HEAP_FLAG_NONE, &_deapthResorceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &_deapthCrearValue, IID_PPV_ARGS(_deapthBuffer.GetAddressOf()));
 
     _deapthDescriptorHeapDesc.NumDescriptors = 1;
     _deapthDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
     _result = device->CreateDescriptorHeap(&_deapthDescriptorHeapDesc, IID_PPV_ARGS(_deapthDescriptorHeap.GetAddressOf()));
 
+    // デプスステンシルビューの作成
     _stencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
     _stencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
     _stencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;

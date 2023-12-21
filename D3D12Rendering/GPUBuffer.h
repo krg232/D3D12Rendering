@@ -6,12 +6,14 @@
 #include <d3dx12.h>
 #include "Struct.h"
 
+// 頂点バッファとビューのセット
 struct VertexBuffer
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> _vertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW _vertexBufferView;
 };
 
+// インデックスバッファとビューのセット
 struct IndexBuffer
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> _indexBuffer;
@@ -19,6 +21,7 @@ struct IndexBuffer
 	int _indexCount;
 };
 
+// テクスチャバッファとビューのセット
 struct TextureBuffer
 {
 	Microsoft::WRL::ComPtr<ID3D12Resource> _textureBuffer;
@@ -47,6 +50,7 @@ public:
 private:
 	HRESULT _result;
 
+	// 頂点バッファ関連
 	D3D12_VERTEX_BUFFER_VIEW _vertexBufferView = {};
 	D3D12_HEAP_PROPERTIES _vertexHeapProperty = {};
 	D3D12_RESOURCE_DESC _vertexResourceDesc = {};
@@ -54,12 +58,14 @@ private:
 	std::vector<VertexBuffer> _vertexBuffers;
 	Vertex *_vertMap;
 
+	// インデックスバッファ関連
 	D3D12_RESOURCE_DESC _indexResourceDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _indexBuffer;
 	std::vector<IndexBuffer> _indexBuffers;
 	USHORT *_indexMap;
 	D3D12_INDEX_BUFFER_VIEW _indexBufferView = {};
 
+	// テクスチャバッファ関連
 	D3D12_HEAP_PROPERTIES _textureHeapProperty = {};
 	D3D12_RESOURCE_DESC _textureResourceDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _textureBuffer;
@@ -69,11 +75,13 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE _texDescHeapHandle = {};
 	std::vector<TextureBuffer> _textureBuffers;
 
+	// 定数バッファ関連
 	D3D12_CONSTANT_BUFFER_VIEW_DESC _cbvDesc = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> _constBuffer;
 	std::shared_ptr<DirectX::XMMATRIX> _mapMatrix;
 	DirectX::XMMATRIX _matrix;
 
+	// 深度バッファ関連
 	D3D12_RESOURCE_DESC _deapthResorceDesc = {};
 	D3D12_HEAP_PROPERTIES _deapthHeapProp = {};
 	D3D12_CLEAR_VALUE _deapthCrearValue = {};

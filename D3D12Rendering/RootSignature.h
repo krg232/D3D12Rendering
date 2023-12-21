@@ -8,11 +8,11 @@ class RootSignature
 {
 public:
 	RootSignature();
-	void CreateRootSignature(ID3D12Device* device, D3D12_STATIC_SAMPLER_DESC textureSamplerDesc);
-	ID3D12RootSignature* GetRootSignature() const;
+	void CreateRootSignature(ID3D12Device *device, D3D12_STATIC_SAMPLER_DESC textureSamplerDesc);
+	ID3D12RootSignature *GetRootSignature() const;
 
 private:
-	void GetErrorMessage(ID3DBlob* errorBlob);
+	void GetErrorMessage(ID3DBlob *errorBlob); // エラーメッセージを取得する
 
 	HRESULT _result;
 
@@ -22,5 +22,4 @@ private:
 	D3D12_ROOT_SIGNATURE_DESC _rootSignatureDesc = {};
 	Microsoft::WRL::ComPtr<ID3DBlob> _rootSignatureBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> _errorBlob;
-
 };

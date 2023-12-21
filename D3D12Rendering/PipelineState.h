@@ -7,7 +7,7 @@ class PipelineState
 {
 public:
 	PipelineState();
-	void SetInputLayout();
+	void SetInputLayout(); // 入力レイアウトの設定
 	void CreatePipelineState(ID3D12Device *device, ID3D12RootSignature *rootSignature, ID3DBlob *vsBlob, ID3DBlob *psBlob);
 	ID3D12PipelineState *GetPipelineState() const;
 

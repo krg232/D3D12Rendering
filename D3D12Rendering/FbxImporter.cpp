@@ -1,39 +1,33 @@
 #include "FbxImporter.h"
 
-std::wstring GetDirectoryPath(const std::wstring& filePath)
+std::wstring GetDirectoryPath(const std::wstring &filePath)
 {
-	std::filesystem::path path = filePath.c_str();
-	return path.remove_filename().c_str();
+    std::filesystem::path path = filePath.c_str();
+    return path.remove_filename().c_str();
 }
 
 void FbxImporter::LoadFbx(ImportSettings settings)
 {
     if (settings.filePath == L"")
     {
-        // ƒGƒ‰[ˆ—
+        // ã‚¨ãƒ©ãƒ¼å‡¦ç†
     }
     auto path = WstrToStr(settings.filePath);
 
-    auto flipU = settings.flipU;
-    auto flipV = settings.flipV;
+    auto flipU = settings.flipTextureU;
+    auto flipV = settings.flipTextureV;
 
     int flag = 0;
-    flag |= aiProcess_Triangulate
-        | aiProcess_PreTransformVertices
-        | aiProcess_CalcTangentSpace
-        | aiProcess_GenSmoothNormals
-        | aiProcess_GenUVCoords
-        | aiProcess_RemoveRedundantMaterials
-        | aiProcess_OptimizeMeshes;
+    flag |= aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals | aiProcess_GenUVCoords | aiProcess_RemoveRedundantMaterials | aiProcess_OptimizeMeshes;
 
     auto scene = _importer.ReadFile(path, flag);
 
     if (scene == nullptr)
     {
-        // ƒGƒ‰[ˆ—
+        // ã‚¨ãƒ©ãƒ¼å‡¦ç†
     }
 
-    std::vector<Mesh>& meshes = settings.meshes;
+    std::vector<Mesh> &meshes = settings.meshes;
     meshes.clear();
     meshes.resize(scene->mNumMeshes);
 
@@ -48,7 +42,7 @@ void FbxImporter::LoadFbx(ImportSettings settings)
     scene = nullptr;
 }
 
-void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool inverseV)
+void FbxImporter::LoadMesh(Mesh &dst, const aiMesh *src, bool inverseU, bool inverseV)
 {
     aiVector3D zeroVec3D(0.0f, 0.0f, 0.0f);
     aiColor4D zeroColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -62,7 +56,7 @@ void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool inv
         auto uv = src->HasTextureCoords(0) ? &(src->mTextureCoords[0][i]) : &zeroVec3D;
         auto tangent = src->HasTangentsAndBitangents() ? &(src->mTangents[i]) : &zeroVec3D;
 
-        // UV‚Ì”½“]
+        // UVã‚’åè»¢ã™ã‚‹
         if (inverseU)
         {
             uv->x = 1 - uv->x;
@@ -83,9 +77,10 @@ void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool inv
 
     dst.indices.resize(src->mNumFaces * 3);
 
+    // é¢ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ ¼ç´
     for (auto i = 0; i < src->mNumFaces; ++i)
     {
-        const auto& face = src->mFaces[i];
+        const auto &face = src->mFaces[i];
 
         dst.indices.at(i * 3 + 0) = face.mIndices[0];
         dst.indices.at(i * 3 + 1) = face.mIndices[1];
@@ -93,16 +88,16 @@ void FbxImporter::LoadMesh(Mesh& dst, const aiMesh* src, bool inverseU, bool inv
     }
 }
 
-void FbxImporter::LoadTexture(std::wstring filePath, Mesh& dst, const aiMaterial* src)
+void FbxImporter::LoadTexture(std::wstring filePath, Mesh &dst, const aiMaterial *src)
 {
     aiString path;
     if (src->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), path) == AI_SUCCESS)
     {
-		// ‘Š‘ÎƒpƒX‚ğâ‘ÎƒpƒX‚É•ÏŠ·
+        // ãƒ¢ãƒ‡ãƒ«ã‹ã‚‰ã®ç›¸å¯¾ãƒ‘ã‚¹ã‚’ã‚¢ãƒ—ãƒªã‹ã‚‰ã®ç›¸å¯¾ãƒ‘ã‚¹ã«å¤‰æ›
         auto dir = GetDirectoryPath(filePath);
         std::filesystem::path file = std::string(path.C_Str());
-        // Aliciaƒ‚ƒfƒ‹‚Ìê‡‚ÍƒeƒNƒXƒ`ƒƒw’è‚ªpsd‚É‚È‚Á‚Ä‚¢‚é‚Ì‚½‚ß“¯«tga‚É•ÏX‚·‚é
-        file.replace_extension("tga");
+        // Aliciaãƒ¢ãƒ‡ãƒ«ã¯ãƒ†ã‚¯ã‚¹ãƒãƒ£ãŒpsdæŒ‡å®šãªã®ã§ä»£ç”¨ã®pngãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ä½¿ç”¨ã™ã‚‹
+        file.replace_extension("png");
         dst.texPath = WstrToStr(dir + file.c_str());
     }
     else

@@ -14,6 +14,7 @@ void PipelineState::SetInputLayout()
 
 void PipelineState::CreatePipelineState(ID3D12Device *device, ID3D12RootSignature *rootSignature, ID3DBlob *vsBlob, ID3DBlob *psBlob)
 {
+    // レンダーターゲットのブレンド状態の設定
     _renderTargetBlendDesc.BlendEnable = true;
     _renderTargetBlendDesc.LogicOpEnable = false;
     _renderTargetBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
@@ -24,6 +25,7 @@ void PipelineState::CreatePipelineState(ID3D12Device *device, ID3D12RootSignatur
     _renderTargetBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
     _renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
+    // グラフィックスパイプラインステートの設定
     _graphicsPipelineStateDesc.pRootSignature = rootSignature;
     _graphicsPipelineStateDesc.VS.pShaderBytecode = vsBlob->GetBufferPointer();
     _graphicsPipelineStateDesc.VS.BytecodeLength = vsBlob->GetBufferSize();

@@ -4,7 +4,7 @@ Texture::Texture()
 {
 }
 
-void Texture::CreateTexSampler()
+void Texture::InitTexSampler()
 {
     _textureSamplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
     _textureSamplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -17,9 +17,10 @@ void Texture::CreateTexSampler()
     _textureSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 }
 
-void Texture::LoadTextures(std::vector<Mesh>& meshes)
+void Texture::LoadTextures(std::vector<Mesh> &meshes)
 {
-	_textureDatas.resize(meshes.size());
+    _textureDatas.resize(meshes.size());
+    // COM初期化
     _result = CoInitializeEx(0, COINIT_MULTITHREADED);
 
     for (int i = 0; i < meshes.size(); i++)
@@ -32,30 +33,20 @@ void Texture::LoadTextures(std::vector<Mesh>& meshes)
         }
         else
         {
-            _result = DirectX::LoadFromTGAFile(StrToWstr(meshes.at(i).texPath).c_str(),&(_textureDatas.at(i).texMetaData),_textureDatas.at(i).scratchImage);
+            _result = DirectX::LoadFromTGAFile(StrToWstr(meshes.at(i).texPath).c_str(), &(_textureDatas.at(i).texMetaData), _textureDatas.at(i).scratchImage);
         }
-        
+
         auto img = _textureDatas.at(i).scratchImage.GetImage(0, 0, 0);
-        _textureDatas.at(i).rawImage = *const_cast<DirectX::Image*>(img);
+        _textureDatas.at(i).rawImage = *const_cast<DirectX::Image *>(img);
     }
-}
-
-DirectX::TexMetadata Texture::GetTexMetaData() const
-{
-	return _texMetaData;
-}
-
-DirectX::Image* Texture::GetRawImage() const
-{
-	return _rawImage;
 }
 
 D3D12_STATIC_SAMPLER_DESC Texture::GetTextureSamplerDesc() const
 {
-	return _textureSamplerDesc;
+    return _textureSamplerDesc;
 }
 
-const std::vector<TextureData>& Texture::GetTextureDatas() const
+const std::vector<TextureData> &Texture::GetTextureDatas() const
 {
     return _textureDatas;
 }

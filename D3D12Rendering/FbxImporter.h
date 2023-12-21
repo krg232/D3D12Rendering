@@ -16,18 +16,18 @@
 struct ImportSettings
 {
     std::wstring filePath = L"";
-    std::vector<Mesh>& meshes;
-    bool flipU = false; // U���W���]�H
-    bool flipV = false; // V���W���]�H
+    std::vector<Mesh> &meshes;
+    bool flipTextureU = false; // テクスチャU座標の反転
+    bool flipTextureV = false; // テクスチャV座標の反転
 };
 
 class FbxImporter
 {
 public:
-	void LoadFbx(ImportSettings settings);
+    void LoadFbx(ImportSettings settings); // fbxモデルの読み込み
 
 private:
-    void LoadMesh(Mesh& dst, const aiMesh* src, bool flipU, bool flipV);
-    void LoadTexture(std::wstring filename, Mesh& dst, const aiMaterial* src);
+    void LoadMesh(Mesh &dst, const aiMesh *src, bool flipU, bool flipV);
+    void LoadTexture(std::wstring filename, Mesh &dst, const aiMaterial *src); // テクスチャパスの取得
     Assimp::Importer _importer;
 };

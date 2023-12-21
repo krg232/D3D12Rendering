@@ -6,11 +6,10 @@
 #include <crtdbg.h>
 #endif // DEBUG
 
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 #ifdef DEBUG
-	// ƒƒ‚ƒŠ ƒŠ[ƒNŒŸo‚Ì—LŒø‰»
+	// ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ã‚¯æ¤œå‡ºã®æœ‰åŠ¹åŒ–
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 

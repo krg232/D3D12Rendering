@@ -9,14 +9,14 @@ class SwapChain
 {
 public:
 	SwapChain();
-	void InitSwapChain(ID3D12Device* device, IDXGIFactory6* dxgiFactory, ID3D12CommandQueue* commandQueue, HWND hwnd, int width, int height);
+	void CreateSwapChain(ID3D12Device *device, IDXGIFactory6 *dxgiFactory, ID3D12CommandQueue *commandQueue, HWND hwnd, int width, int height);
 	void InitBarrierDesc();
-	void SetBuckbufferIndex();
-	void SetBarrierState();
-	D3D12_RESOURCE_BARRIER* GetBarrierDesc();
-	ID3D12DescriptorHeap* GetRtvHeap() const;
+	void UpdateBuckbufferIndex();
+	void SetBarrierState(); // バリアをPresentにする
+	D3D12_RESOURCE_BARRIER *GetBarrierDesc();
+	ID3D12DescriptorHeap *GetRtvHeap() const;
 	int GetBackbufferIndex() const;
-	void Present();
+	void Present(); // バックバッファをフリップ
 
 private:
 	HRESULT _result;
@@ -28,5 +28,4 @@ private:
 	unsigned int backbufferIndex;
 
 	D3D12_RESOURCE_BARRIER _barrierDesc = {};
-
 };

@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+// デバッグレイヤーの有効化
 static void EnableDx12DebugLayer()
 {
     Microsoft::WRL::ComPtr<ID3D12Debug> debugLayer;
@@ -62,47 +63,63 @@ void Engine::Update()
 {
     _swapchain->UpdateBuckbufferIndex();
 
+    // バリアの初期化と遷移
     _swapchain->InitBarrierDesc();
     _commands->GetCommandList()->ResourceBarrier(1, _swapchain->GetBarrierDesc());
 
     _commands->GetCommandList()->SetPipelineState(_pipelineState->GetPipelineState());
 
+    // RTVの設定
     auto rtvHundle = _swapchain->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
     rtvHundle.ptr += _swapchain->GetBackbufferIndex() * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    // デプスステンシルの設定
     auto dsvHandle = _gpuBuffer->GetDeapthDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     _commands->GetCommandList()->OMSetRenderTargets(1, &rtvHundle, true, &dsvHandle);
 
+    // ルートシグネチャ設定
     _commands->GetCommandList()->SetGraphicsRootSignature(_rootSignature->GetRootSignature());
 
+    // ビューポートとシザー矩形の設定
     _commands->GetCommandList()->RSSetViewports(1, _device->GetViewPort());
     _commands->GetCommandList()->RSSetScissorRects(1, _device->GetScissorRect());
 
+    // プリミティブトポロジの背屮
     _commands->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+    // 画面クリア
     float clearColor[] = {0.12f, 0.12f, 0.12f, 1.0f};
     _commands->GetCommandList()->ClearRenderTargetView(rtvHundle, clearColor, 0, nullptr);
 
+    // 深度ステンシルクリア
     _commands->GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
+    // テクスチャ用ディスクリプタヒープの設定
     _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());
+    // SRV指定用ポインタの設定
     auto _heapHandle = _gpuBuffer->GetTexDescHeap()->GetGPUDescriptorHandleForHeapStart();
+    // CBV指定用ポインタの設定
     D3D12_GPU_DESCRIPTOR_HANDLE cbvHandle;
     cbvHandle.ptr = _heapHandle.ptr + (_dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _gpuBuffer->GetVertexBufferSize());
-    
+
     for (int i = 0; i < _gpuBuffer->GetVertexBufferSize(); i++)
     {
+        // SRV設定とオフセット調整
         _commands->GetCommandList()->SetGraphicsRootDescriptorTable(0, _heapHandle);
         _heapHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        // CBV設定
         _commands->GetCommandList()->SetGraphicsRootDescriptorTable(1, cbvHandle);
 
+        // ジオメトリ描画
         _commands->GetCommandList()->IASetVertexBuffers(0, 1, _gpuBuffer->GetVertexBufferView(i));
         _commands->GetCommandList()->IASetIndexBuffer(_gpuBuffer->GetIndexBufferView(i));
         _commands->GetCommandList()->DrawIndexedInstanced(_gpuBuffer->GetIndexCount(i), 1, 0, 0, 0);
     }
 
+    // バリアの遷移
     _swapchain->SetBarrierState();
     _commands->GetCommandList()->ResourceBarrier(1, _swapchain->GetBarrierDesc());
 
+    // コマンドクローズ
     _commands->GetCommandList()->Close();
 
     _commands->ExecuteCommandList();

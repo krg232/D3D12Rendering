@@ -6,57 +6,56 @@ Device::Device()
 
 void Device::InitDevice()
 {
-    
-        const D3D_FEATURE_LEVEL levels[]{
-            D3D_FEATURE_LEVEL_12_1,
-            D3D_FEATURE_LEVEL_12_0,
-            D3D_FEATURE_LEVEL_11_1,
-            D3D_FEATURE_LEVEL_11_0,
-        };
+    // フィーチャーレベル一覧
+    const D3D_FEATURE_LEVEL levels[]{
+        D3D_FEATURE_LEVEL_12_1,
+        D3D_FEATURE_LEVEL_12_0,
+        D3D_FEATURE_LEVEL_11_1,
+        D3D_FEATURE_LEVEL_11_0,
+    };
 
 #ifdef DEBUG
-        _result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(_dxgiFactory.GetAddressOf()));
+    _result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(_dxgiFactory.GetAddressOf()));
 #else
-        _result = CreateDXGIFactory1(IID_PPV_ARGS(_dxgiFactory.GetAddressOf()));
+    _result = CreateDXGIFactory1(IID_PPV_ARGS(_dxgiFactory.GetAddressOf()));
 #endif
 
-        for (UINT i = 0; _dxgiFactory->EnumAdapters(i, _adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
-        {
-            _availableAdapters.push_back(_adapter);
-            _adapter.Reset();
-        }
-
-        for (auto a : _availableAdapters)
-        {
-            DXGI_ADAPTER_DESC aDesc = {};
-            a->GetDesc(&aDesc);
-
-            auto strDesc = aDesc.Description;
-        }
-        // �����I������
+    // アダプターの列挙と探索
+    for (UINT i = 0; _dxgiFactory->EnumAdapters(i, _adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
+    {
+        _availableAdapters.push_back(_adapter);
         _adapter.Reset();
+    }
 
-        for (auto lv : levels)
+    for (auto a : _availableAdapters)
+    {
+        DXGI_ADAPTER_DESC aDesc = {};
+        a->GetDesc(&aDesc);
+        auto strDesc = aDesc.Description;
+    }
+
+    // アダプターを自動選択にする
+    _adapter.Reset();
+
+    for (auto lv : levels)
+    {
+        if (D3D12CreateDevice(_adapter.Get(), lv, IID_PPV_ARGS(_dev.GetAddressOf())) == S_OK)
         {
-            if (D3D12CreateDevice(_adapter.Get(), lv, IID_PPV_ARGS(_dev.GetAddressOf())) == S_OK)
-            {
-                _featureLevel = lv;
-                break;
-            }
+            _featureLevel = lv;
+            break;
         }
+    }
 
-        if (_dev == nullptr)
-        {
-            return;
-        }
-    
-
+    if (_dev == nullptr)
+    {
+        return;
+    }
 }
 
 void Device::InitViewPort(int width, int height)
 {
-	_viewport.Width = static_cast<float>(width);
-	_viewport.Height = static_cast<float>(height);
+    _viewport.Width = static_cast<float>(width);
+    _viewport.Height = static_cast<float>(height);
     _viewport.TopLeftX = 0;
     _viewport.TopLeftY = 0;
     _viewport.MaxDepth = 1.0f;
@@ -66,25 +65,24 @@ void Device::InitViewPort(int width, int height)
     _scissorRect.bottom = _scissorRect.top + height;
     _scissorRect.left = 0;
     _scissorRect.right = _scissorRect.left + width;
-
 }
 
-ID3D12Device* Device::GetDevice() const
+ID3D12Device *Device::GetDevice() const
 {
-	return _dev.Get();
+    return _dev.Get();
 }
 
-IDXGIFactory6* Device::GetDxgiFactory() const
+IDXGIFactory6 *Device::GetDxgiFactory() const
 {
-	return _dxgiFactory.Get();
+    return _dxgiFactory.Get();
 }
 
-const D3D12_VIEWPORT* Device::GetViewPort() const
+const D3D12_VIEWPORT *Device::GetViewPort() const
 {
-	return &_viewport;
+    return &_viewport;
 }
 
-const D3D12_RECT* Device::GetScissorRect() const
+const D3D12_RECT *Device::GetScissorRect() const
 {
-	return &_scissorRect;
+    return &_scissorRect;
 }

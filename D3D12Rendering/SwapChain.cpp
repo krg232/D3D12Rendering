@@ -1,10 +1,10 @@
 #include "SwapChain.h"
 
-SwapChain::SwapChain() :backbufferIndex(0)
+SwapChain::SwapChain() : backbufferIndex(0)
 {
 }
 
-void SwapChain::InitSwapChain(ID3D12Device* device, IDXGIFactory6* dxgiFactory, ID3D12CommandQueue* commandQueue, HWND hwnd, int width, int height)
+void SwapChain::CreateSwapChain(ID3D12Device *device, IDXGIFactory6 *dxgiFactory, ID3D12CommandQueue *commandQueue, HWND hwnd, int width, int height)
 {
     _swapchainDesc.Width = width;
     _swapchainDesc.Height = height;
@@ -18,16 +18,17 @@ void SwapChain::InitSwapChain(ID3D12Device* device, IDXGIFactory6* dxgiFactory, 
     _swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     _swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
     _swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    // 　スワップチェーンの作成
+    _result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &_swapchainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1 **>(_swapchain.GetAddressOf()));
 
-    _result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &_swapchainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(_swapchain.GetAddressOf()));
-
+    // RTV用ディスクリプタヒープの作成
     _heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     _heapDesc.NodeMask = 0;
     _heapDesc.NumDescriptors = 2;
     _heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-
     _result = device->CreateDescriptorHeap(&_heapDesc, IID_PPV_ARGS(_rtvHeaps.GetAddressOf()));
 
+    // バックバッファとRTVを紐付ける
     _backBuffers.resize(_swapchainDesc.BufferCount);
     for (int i = 0; i < _swapchainDesc.BufferCount; i++)
     {
@@ -36,7 +37,6 @@ void SwapChain::InitSwapChain(ID3D12Device* device, IDXGIFactory6* dxgiFactory, 
         handle.ptr += i * device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         device->CreateRenderTargetView(_backBuffers.at(i).Get(), nullptr, handle);
     }
-
 }
 
 void SwapChain::InitBarrierDesc()
@@ -49,7 +49,7 @@ void SwapChain::InitBarrierDesc()
     _barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 }
 
-void SwapChain::SetBuckbufferIndex()
+void SwapChain::UpdateBuckbufferIndex()
 {
     backbufferIndex = _swapchain->GetCurrentBackBufferIndex();
 }
@@ -60,19 +60,19 @@ void SwapChain::SetBarrierState()
     _barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 }
 
-D3D12_RESOURCE_BARRIER* SwapChain::GetBarrierDesc()
+D3D12_RESOURCE_BARRIER *SwapChain::GetBarrierDesc()
 {
-	return &_barrierDesc;
+    return &_barrierDesc;
 }
 
-ID3D12DescriptorHeap* SwapChain::GetRtvHeap() const
+ID3D12DescriptorHeap *SwapChain::GetRtvHeap() const
 {
-	return _rtvHeaps.Get();
+    return _rtvHeaps.Get();
 }
 
 int SwapChain::GetBackbufferIndex() const
 {
-	return backbufferIndex;
+    return backbufferIndex;
 }
 
 void SwapChain::Present()
