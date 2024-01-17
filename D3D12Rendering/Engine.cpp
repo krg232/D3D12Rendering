@@ -23,6 +23,7 @@ Engine::Engine(HWND hwnd) : _hwnd{hwnd}
     _rootSignature = std::make_unique<RootSignature>();
     _pipelineState = std::make_unique<PipelineState>();
     _camera = std::make_unique<Camera>();
+    _imGuiWrap = std::make_unique<ImGuiWrapper>();
 }
 
 void Engine::Init()
@@ -56,11 +57,15 @@ void Engine::Init()
     _pipelineState->CreatePipelineState(_device->GetDevice(), _rootSignature->GetRootSignature(), _shader->GetVertexShaderBlob(), _shader->GetPixelShaderBlob());
 
     _device->InitViewPort(WindowWidth, WindowHeight);
+
+    _imGuiWrap->InitImgui(_hwnd, _device->GetDevice());
 }
 
 void Engine::Update()
 {
     _swapchain->UpdateBackbufferIndex();
+
+    _imGuiWrap->SetWindow();
 
     // バリアの初期化と遷移
     _swapchain->InitBarrierDesc();
@@ -93,7 +98,7 @@ void Engine::Update()
     _commands->GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // テクスチャ用ディスクリプタヒープの設定
-    _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());
+    _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());    
     // SRV指定用ポインタの設定
     auto _heapHandle = _gpuBuffer->GetTexDescHeap()->GetGPUDescriptorHandleForHeapStart();
     // CBV指定用ポインタの設定
@@ -113,6 +118,11 @@ void Engine::Update()
         _commands->GetCommandList()->IASetIndexBuffer(_gpuBuffer->GetIndexBufferView(i));
         _commands->GetCommandList()->DrawIndexedInstanced(_gpuBuffer->GetIndexCount(i), 1, 0, 0, 0);
     }
+
+    // imgui用ディスクリプタヒープの設定
+    _commands->GetCommandList()->SetDescriptorHeaps(1, _imGuiWrap->GetImguiDescHeapPtr());
+
+    _imGuiWrap->Draw(_commands->GetCommandList());
 
     // バリアの遷移
     _swapchain->SetBarrierState();

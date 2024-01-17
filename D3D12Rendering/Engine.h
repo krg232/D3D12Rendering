@@ -17,6 +17,7 @@
 #include "RootSignature.h"
 #include "PipelineState.h"
 #include "Camera.h"
+#include "ImguiWrapper.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -48,4 +49,5 @@ private:
 	std::unique_ptr<RootSignature> _rootSignature;
 	std::unique_ptr<PipelineState> _pipelineState;
 	std::unique_ptr<Camera> _camera;
+	std::unique_ptr<ImGuiWrapper> _imGuiWrap;
 };
