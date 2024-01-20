@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <d3d12.h>
-#include "Struct.h"
+#include "..\Rendering\Struct.h"
 #include "FbxImporter.h"
 
 class Model

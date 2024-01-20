@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include <DirectXTex.h>
 #include <wrl.h>
-#include "Utility.h"
+#include "..\Utility.h"
 #include "Struct.h"
 
 class Texture

@@ -6,8 +6,8 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <wrl.h>
-#include "Struct.h"
-#include "Utility.h"
+#include "..\Rendering\Struct.h"
+#include "..\Utility.h"
 #include <filesystem>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

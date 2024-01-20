@@ -1,8 +1,8 @@
 #pragma once
 
-#include "imgui/imgui.h"
-#include "imgui/backends/imgui_impl_win32.h"
-#include "imgui/backends/imgui_impl_dx12.h"
+#include "..\imgui\imgui.h"
+#include "..\imgui\backends\imgui_impl_win32.h"
+#include "..\imgui\backends\imgui_impl_dx12.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>

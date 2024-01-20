@@ -11,7 +11,7 @@
 #include "SwapChain.h"
 #include "Fence.h"
 #include "Shader.h"
-#include "Model.h"
+#include "..\Model\Model.h"
 #include "GPUBuffer.h"
 #include "Texture.h"
 #include "RootSignature.h"
