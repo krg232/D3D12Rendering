@@ -42,7 +42,11 @@ void ImGuiWrapper::SetWindow()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Hello, world!");
+    ImGui::Begin("info");
+
+    auto framerate = ImGui::GetIO().Framerate;
+    ImGui::Text("Framerate:%.3f ms", 1000.0f / framerate);
+
     ImGui::End();
 
     ImGui::Render();

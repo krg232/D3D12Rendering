@@ -33,6 +33,7 @@ void Shader::CompileShader(std::wstring filename, const char *entryPoint, const 
             GetErrorMessage(_shaderErrorBlob.Get());
         }
     }
+    WriteToLog(S_OK, "Shader Compile");
 }
 
 void Shader::GetErrorMessage(ID3DBlob *errorBlob)
@@ -41,4 +42,5 @@ void Shader::GetErrorMessage(ID3DBlob *errorBlob)
     error.resize(errorBlob->GetBufferSize());
     std::copy_n((char *)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize(), error.begin());
     OutputDebugStringA(error.c_str());
+    WriteToLog(E_FAIL, error);
 }

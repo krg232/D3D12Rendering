@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <memory>
 #include "Rendering\Engine.h"
+#include "Logger.h"
 
 class App
 {
@@ -22,6 +23,7 @@ private:
 	RECT _wrc;
 	MSG _msg;
 	std::unique_ptr<Engine> _renderingEngine;
+	std::unique_ptr<Logger> _logger;
 
 	void InitWindow(const wchar_t* windowName);
 };

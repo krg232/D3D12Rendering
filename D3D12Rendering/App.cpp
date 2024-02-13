@@ -15,6 +15,8 @@ void App::Init()
 	_windowHeight = 1080;
 	_windowWidth = 1920;
 
+	_logger = std::make_unique<Logger>("log.txt");
+
 	InitWindow(L"D3D12Rendering");
 	_renderingEngine = std::make_unique<Engine>(_hwnd);
 	_renderingEngine->Init();

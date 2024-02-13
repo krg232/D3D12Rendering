@@ -36,6 +36,8 @@ void Texture::LoadTextures(std::vector<Mesh> &meshes)
             _result = DirectX::LoadFromTGAFile(StrToWstr(meshes.at(i).texPath).c_str(), &(_textureDatas.at(i).texMetaData), _textureDatas.at(i).scratchImage);
         }
 
+        WriteToLog(_result, "Texture load");
+
         auto img = _textureDatas.at(i).scratchImage.GetImage(0, 0, 0);
         _textureDatas.at(i).rawImage = *const_cast<DirectX::Image *>(img);
     }

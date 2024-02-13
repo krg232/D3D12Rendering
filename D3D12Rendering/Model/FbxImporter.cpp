@@ -10,7 +10,7 @@ void FbxImporter::LoadFbx(ImportSettings settings)
 {
     if (settings.filePath == L"")
     {
-        // エラー処理
+        return;
     }
     auto path = WstrToStr(settings.filePath);
 
@@ -22,10 +22,7 @@ void FbxImporter::LoadFbx(ImportSettings settings)
 
     auto scene = _importer.ReadFile(path, flag);
 
-    if (scene == nullptr)
-    {
-        // エラー処理
-    }
+    WriteToLog(scene == nullptr ? E_FAIL : S_OK, "Importing FBX files");
 
     std::vector<Mesh> &meshes = settings.meshes;
     meshes.clear();

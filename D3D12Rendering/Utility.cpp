@@ -15,3 +15,18 @@ std::string WstrToStr(std::wstring input)
 	std::string result = ch.get();
 	return result;
 }
+
+void WriteToLog(HRESULT result, std::string message)
+{
+	if (result != S_OK)
+	{
+		_com_error err(result);
+		spdlog::error("Failed : "+ message);
+		spdlog::error(WstrToStr(err.ErrorMessage()));
+		std::exit(1);
+	}
+	else
+	{
+		spdlog::info("Succeeded : "+ message);
+	}
+}
