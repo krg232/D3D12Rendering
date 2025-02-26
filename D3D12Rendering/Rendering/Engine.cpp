@@ -67,6 +67,9 @@ void Engine::Update()
 
     _imGuiWrap->SetWindow();
 
+    // カメラの回転
+    _imGuiWrap->UpdateCameraRotationInput(_camera.get());
+
     // バリアの初期化と遷移
     _swapchain->InitBarrierDesc();
     _commands->GetCommandList()->ResourceBarrier(1, _swapchain->GetBarrierDesc());
@@ -97,8 +100,11 @@ void Engine::Update()
     // 深度ステンシルクリア
     _commands->GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
+    // 定数バッファの更新
+    _gpuBuffer->UpdateConstBufferMatrix(_camera->GetCameraMatrix());
+
     // テクスチャ用ディスクリプタヒープの設定
-    _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());    
+    _commands->GetCommandList()->SetDescriptorHeaps(1, _gpuBuffer->GetTexDescHeapPtr());
     // SRV指定用ポインタの設定
     auto _heapHandle = _gpuBuffer->GetTexDescHeap()->GetGPUDescriptorHandleForHeapStart();
     // CBV指定用ポインタの設定

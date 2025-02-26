@@ -21,6 +21,52 @@ DirectX::XMMATRIX Camera::GetCameraMatrix() const
 	return _cameraMat;
 }
 
+void Camera::RotateCamera(float yawDelta, float pitchDelta)
+{
+	// 感度を適用
+	yawDelta *= _rotationSensitivity;
+	pitchDelta *= _rotationSensitivity;
+
+	DirectX::XMVECTOR eyePosition = DirectX::XMLoadFloat3(&_viewMat.eyePos);
+	DirectX::XMVECTOR focusPosition = DirectX::XMLoadFloat3(&_viewMat.focusPos);
+	DirectX::XMVECTOR upDirection = DirectX::XMLoadFloat3(&_viewMat.upDirection);
+
+	// 注視点から視点へのベクトル
+	DirectX::XMVECTOR eyeToFocusVec = DirectX::XMVectorSubtract(focusPosition, eyePosition);
+
+	// ヨー回転（Y軸）
+	DirectX::XMMATRIX yawRotation = DirectX::XMMatrixRotationY(yawDelta);
+	eyeToFocusVec = DirectX::XMVector3TransformNormal(eyeToFocusVec, yawRotation);
+	upDirection = DirectX::XMVector3TransformNormal(upDirection, yawRotation);
+
+	// ピッチ回転（X軸）
+	// 右方向ベクトルを計算 (Upと視線方向の外積)
+	DirectX::XMVECTOR rightDirection = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(upDirection, eyeToFocusVec));
+	// Y軸とのなす角からピッチ角を求める
+	auto currentPitch = asinf(DirectX::XMVectorGetY(DirectX::XMVector3Normalize(DirectX::XMVectorNegate(eyeToFocusVec))));
+	auto newPitch = currentPitch + pitchDelta;
+	// 実際に適用するピッチ回転量を計算
+	auto actualPitchDelta = newPitch - currentPitch;
+
+	DirectX::XMMATRIX pitchRotation = DirectX::XMMatrixRotationAxis(rightDirection, actualPitchDelta);
+	// 視点ベクトルとUpベクトルをピッチ回転
+	eyeToFocusVec = DirectX::XMVector3TransformNormal(eyeToFocusVec, pitchRotation);
+	upDirection = DirectX::XMVector3TransformNormal(upDirection, pitchRotation);
+
+	// 新しい視点位置を計算
+	DirectX::XMVECTOR newEyePosition = DirectX::XMVectorSubtract(focusPosition, eyeToFocusVec);
+
+	// Upベクトルを正規化
+	upDirection = DirectX::XMVector3Normalize(upDirection);
+
+	// 結果をメンバ変数に格納
+	DirectX::XMStoreFloat3(&_viewMat.eyePos, newEyePosition);
+	DirectX::XMStoreFloat3(&_viewMat.upDirection, upDirection);
+
+	// カメラ行列を更新
+	CalcCameraMatrix();
+}
+
 void Camera::CalcCameraMatrix()
 {
 	// ビュー行列の計算
