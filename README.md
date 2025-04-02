@@ -28,7 +28,7 @@ DirectXTexを`D3D12Rendering/ThirdParty`にクローンしてビルドする
 
 ```bash
 cd D3D12Rendering
-git clone https://github.com/microsoft/DirectXTex.git D3D12Rendering/ThirdParty
+git clone https://github.com/microsoft/DirectXTex.git DirectXTex/D3D12Rendering/ThirdParty
 ```
 
 [vcpkg](https://github.com/microsoft/vcpkg)でassimp, spdlogをインストールする
